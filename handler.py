@@ -5,6 +5,12 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+# <<< חיבור Healthcheck >>>
+@app.route("/", methods=["GET"])
+def healthcheck():
+    return "OK", 200
+# <<< סוף ה־Healthcheck >>>
+
 @app.route("/diarize", methods=["POST"])
 def diarize_endpoint():
     data = request.get_json()
@@ -12,16 +18,15 @@ def diarize_endpoint():
     if not gcs_uri:
         return jsonify({"error": "Missing gcs_uri"}), 400
 
-    # כאן ירדידו את הקובץ ל־/tmp/input.wav
     local_path = "/tmp/input.wav"
-    # לדוגמה using wget; אפשר גם curl
+    # הורדת הקובץ
     ret = subprocess.run([
         "wget", "-q", "-O", local_path, gcs_uri
     ])
     if ret.returncode != 0:
         return jsonify({"error": "Failed to download audio"}), 500
 
-    # עכשיו קוראים ל־diarize.py על הקובץ שהורד
+    # הרצת diarize.py
     try:
         output = subprocess.check_output(
             ["python", "diarize.py", local_path],
@@ -33,6 +38,5 @@ def diarize_endpoint():
         return jsonify({"error": e.output.decode()}), 500
 
 if __name__ == "__main__":
-    # Run on 0.0.0.0 כדי שה־healthcheck יעבוד
     port = int(os.getenv("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
