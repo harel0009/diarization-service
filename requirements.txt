@@ -1,0 +1,6 @@
+pyannote.audio
+torch
+pydub
+librosa
+ffmpeg-python
+huggingface-hub
