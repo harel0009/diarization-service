@@ -1,23 +1,20 @@
-# Base44 Pyannote Diarization Worker
-# NOTE: Using official python base. For GPU performance you may prefer a RunPod PyTorch base image.
-FROM python:3.10-slim
+# Base44 Pyannote Diarization Worker – רק inference
+FROM python:3.9-slim
 
-# System deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg git wget curl build-essential \
- && rm -rf /var/lib/apt/lists/*
-
+# 1. Set workdir
 WORKDIR /app
 
-COPY requirements.txt ./
+# 2. Install ffmpeg for pydub
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+# 3. Copy & install Python deps
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY env_config.py audio_io.py diarize_core.py handler.py README.md ./
+# 4. Copy only the diarization script
+COPY diarize.py .
 
-# Default env (override in RunPod console)
-ENV MODEL_NAME=pyannote/speaker-diarization-3.1
-ENV RP_LOG_LEVEL=info
-# DO NOT bake HF_TOKEN into image!
-# ENV HF_TOKEN=...
-
-CMD ["python", "handler.py"]
+# 5. Entry point: read path/to/audio.wav from argv, emit JSON to stdout
+ENTRYPOINT ["python", "diarize.py"]
