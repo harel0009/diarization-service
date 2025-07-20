@@ -1,18 +1,20 @@
-# לשימוש עם Python 3.9-Slim
+# Use a slim Python image
 FROM python:3.9-slim
 
-# קובע את תיקיית העבודה
+# Set working directory
 WORKDIR /app
 
-# מעתיק רק את הרשימה של התלויות ומתקין אותן
+# Install ffmpeg for pydub
+RUN apt-get update && \
+    apt-get install -y ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# מעתיק את הסקריפט
+# Copy the diarization script
 COPY diarize.py .
 
-# אם צריך ffmpeg statically linked, נניח שיש לך bin/ffmpeg
-# COPY bin/ffmpeg /usr/local/bin/ffmpeg
-
-# ברירת מחדל – מריץ את הסקריפט ומחכה ל־stdin/argv
+# Run the script when container starts
 ENTRYPOINT ["python", "diarize.py"]
