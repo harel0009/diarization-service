@@ -1,0 +1,18 @@
+# לשימוש עם Python 3.9-Slim
+FROM python:3.9-slim
+
+# קובע את תיקיית העבודה
+WORKDIR /app
+
+# מעתיק רק את הרשימה של התלויות ומתקין אותן
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# מעתיק את הסקריפט
+COPY diarize.py .
+
+# אם צריך ffmpeg statically linked, נניח שיש לך bin/ffmpeg
+# COPY bin/ffmpeg /usr/local/bin/ffmpeg
+
+# ברירת מחדל – מריץ את הסקריפט ומחכה ל־stdin/argv
+ENTRYPOINT ["python", "diarize.py"]
