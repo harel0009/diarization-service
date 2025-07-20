@@ -1,20 +1,23 @@
-# Use a slim Python image
-FROM python:3.9-slim
+# Base44 Pyannote Diarization Worker
+# NOTE: Using official python base. For GPU performance you may prefer a RunPod PyTorch base image.
+FROM python:3.10-slim
 
-# Set working directory
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg git wget curl build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Install ffmpeg for pydub
-RUN apt-get update && \
-    apt-get install -y ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy and install Python dependencies
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the diarization script
-COPY diarize.py .
+COPY env_config.py audio_io.py diarize_core.py handler.py README.md ./
 
-# Run the script when container starts
-ENTRYPOINT ["python", "diarize.py"]
+# Default env (override in RunPod console)
+ENV MODEL_NAME=pyannote/speaker-diarization-3.1
+ENV RP_LOG_LEVEL=info
+# DO NOT bake HF_TOKEN into image!
+# ENV HF_TOKEN=...
+
+CMD ["python", "handler.py"]
