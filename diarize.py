@@ -30,5 +30,5 @@ for turn, _, speaker in diarization.itertracks(yield_label=True):
         "speaker": speaker
     })
 
-# החזרת JSON ל‑stdout
+# מדפיס JSON למערכת הקריאה (stdout)
 print(json.dumps(segments, ensure_ascii=False))
